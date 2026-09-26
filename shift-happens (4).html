@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shift Happens</title>
+<style>
+:root{box-sizing:border-box;
+--bg:#eef1f3;--card:#fff;--ink:#1c2126;--mut:#5c6772;--line:#d7dce0;
+--dem:#b8860b;--sup:#1e7a6f;--acc:#e8963c;--up:#b42318;--down:#15803d;--hero:#181c20}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#11151a;--card:#1a2027;--ink:#e7ebee;--mut:#98a4af;--line:#2b333b;--dem:#e0b04a;--sup:#5fc9b8;--hero:#0d1013}}
+:root[data-theme="dark"]{--bg:#11151a;--card:#1a2027;--ink:#e7ebee;--mut:#98a4af;--line:#2b333b;--dem:#e0b04a;--sup:#5fc9b8;--hero:#0d1013}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,Arial,sans-serif;line-height:1.45}
+.wrap{max-width:1040px;margin:0 auto;padding:14px}
+.top{display:flex;align-items:center;gap:12px;background:var(--hero);color:#fff;border-radius:12px;padding:16px 18px;margin-bottom:14px}
+.top .ico{font-size:30px}
+.top h1{margin:0;font-size:1.5rem}
+.top p{margin:2px 0 0;color:#aab5bf;font-size:.88rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+h2{font-size:.9rem;margin:0 0 10px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut)}
+.hero{position:relative;background:var(--hero);border-radius:12px;overflow:hidden;margin-bottom:14px;border:1px solid var(--line)}
+.hero svg.scn{display:block;width:100%;max-height:300px;margin:0 auto}
+.g{display:none}
+.hero.st-flat .g-flat,.hero.st-boom .g-boom,.hero.st-recession .g-recession,.hero.st-stag .g-stag,.hero.st-collapse .g-collapse{display:block}
+.cap{padding:12px 16px;border-top:1px solid #2c343b}
+.cap b{font-size:1.08rem;color:#e6eaee;display:block}
+.cap div{color:#a6b2bd;font-size:.9rem;margin-top:2px}
+.grid{display:grid;gap:14px}
+@media(min-width:880px){.grid{grid-template-columns:1fr 1fr;align-items:start}.col{display:flex;flex-direction:column;gap:14px}.col.r{position:sticky;top:12px}}
+.dc{border-top:4px solid var(--dem)}.sc{border-top:4px solid var(--sup)}
+.pre{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.pre button{font:inherit;font-size:.82rem;padding:6px 11px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:8px;cursor:pointer}
+.pre button:hover{border-color:var(--ink)}
+.sl{margin:8px 0 14px}
+.sl label{display:flex;justify-content:space-between;gap:8px;font-size:.9rem}
+.sl b{font-variant-numeric:tabular-nums}
+.sl small{color:var(--mut);display:block;font-size:.76rem;margin-top:2px}
+.sl input{width:100%;margin:4px 0 0}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.stat{border:1px solid var(--line);border-radius:10px;padding:9px}
+.stat span{font-size:.72rem;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
+.stat div{font-size:1.15rem;font-weight:700;font-variant-numeric:tabular-nums}
+.stat em{font-style:normal;font-size:.8rem}
+.up{color:var(--up)}.down{color:var(--down)}
+.gauge{height:14px;border-radius:7px;background:var(--line);position:relative;overflow:hidden;margin:10px 0 2px}
+.gauge i{position:absolute;left:0;top:0;height:100%;background:var(--sup);transition:width .5s}
+.gauge b{position:absolute;left:50%;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.5}
+.gaugelbl{display:flex;justify-content:space-between;font-size:.74rem;color:var(--mut)}
+#why{font-size:.9rem;margin:10px 0 0}
+.chartbox{overflow-x:auto}
+svg text{fill:var(--mut);font-size:11px;font-family:inherit}
+button:focus-visible,input:focus-visible{outline:3px solid var(--sup);outline-offset:2px}
+/* animations */
+.st-boom .confetti{transform-box:fill-box;transform-origin:center;animation:fall 2.4s linear infinite}
+.st-boom .rocket{animation:rise 2.6s ease-in-out infinite}
+.st-recession .rain{animation:drip 1.6s linear infinite}
+.st-recession .tumble{animation:roll 4s linear infinite}
+.st-stag .flame{transform-box:fill-box;transform-origin:50% 100%;animation:flicker .5s ease-in-out infinite alternate}
+.st-stag .smoke2{transform-box:fill-box;transform-origin:center;animation:riseSmoke 2.2s ease-out infinite}
+.st-boom .hero-pose{animation:heroBounce 1s ease-in-out infinite}
+.st-recession .sad-pose,.st-stag .sad-pose{transform-box:fill-box;transform-origin:center;animation:sadSway 2.4s ease-in-out infinite}
+.st-stag .bolt{animation:boltFlash 1.3s ease-in-out infinite}
+@keyframes fall{0%{transform:translateY(-10px) rotate(0)}100%{transform:translateY(230px) rotate(200deg)}}
+@keyframes rise{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes drip{0%{transform:translateY(-6px);opacity:0}60%{opacity:1}100%{transform:translateY(18px);opacity:0}}
+@keyframes roll{0%{transform:translateX(-30px) rotate(0)}100%{transform:translateX(420px) rotate(720deg)}}
+@keyframes flicker{0%{transform:scaleY(1) skewX(-2deg)}100%{transform:scaleY(1.15) skewX(2deg)}}
+@keyframes riseSmoke{0%{opacity:.7;transform:translateY(0) scale(.6)}100%{opacity:0;transform:translateY(-40px) scale(1.6)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes heroBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes sadSway{0%,100%{transform:rotate(0)}50%{transform:rotate(-4deg)}}
+@keyframes boltFlash{0%,100%{opacity:.85}50%{opacity:.25}}
+@media(prefers-reduced-motion:reduce){.confetti,.rocket,.rain,.tumble,.flame,.smoke2,.crow,.rays,.hero-pose,.sad-pose,.bolt{animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+<div class="ico">📈</div>
+<div><h1>Shift Happens</h1><p>An AD/AS economy simulator. Nudge the shifters, watch the curves move, try not to crash it (no promises).</p></div>
+</header>
+
+<section class="hero st-flat" id="scene">
+<svg class="scn" viewBox="0 0 480 240" role="img" aria-label="Economy mood animation">
+<rect width="480" height="240" fill="#12161a"/>
+
+<g class="g g-flat">
+<rect y="170" width="480" height="70" fill="#1d2329"/>
+<rect x="40" y="90" width="46" height="80" fill="#242b32"/><rect x="100" y="60" width="50" height="110" fill="#2a323a"/>
+<rect x="170" y="100" width="40" height="70" fill="#242b32"/><rect x="230" y="40" width="55" height="130" fill="#2a323a"/>
+<rect x="300" y="85" width="46" height="85" fill="#242b32"/><rect x="360" y="65" width="50" height="105" fill="#2a323a"/>
+<circle cx="420" cy="60" r="22" fill="#e8963c" opacity=".8"/>
+<line x1="0" y1="170" x2="480" y2="170" stroke="#3d454d" stroke-width="2"/>
+</g>
+
+<g class="g g-boom">
+<rect width="480" height="240" fill="#1c1408"/>
+<g class="rays" stroke="#f2c14e" stroke-width="4" opacity=".4">
+<animateTransform attributeName="transform" type="rotate" from="0 240 120" to="360 240 120" dur="7s" repeatCount="indefinite"/>
+<line x1="240" y1="120" x2="240" y2="-10"/><line x1="240" y1="120" x2="240" y2="250" transform="rotate(45 240 120)"/>
+<line x1="240" y1="120" x2="240" y2="-10" transform="rotate(90 240 120)"/><line x1="240" y1="120" x2="240" y2="-10" transform="rotate(135 240 120)"/>
+<line x1="240" y1="120" x2="240" y2="-10" transform="rotate(180 240 120)"/><line x1="240" y1="120" x2="240" y2="-10" transform="rotate(225 240 120)"/>
+<line x1="240" y1="120" x2="240" y2="-10" transform="rotate(270 240 120)"/><line x1="240" y1="120" x2="240" y2="-10" transform="rotate(315 240 120)"/>
+</g>
+<circle cx="240" cy="120" r="58" fill="#f2c14e" opacity=".25"/>
+<g class="hero-pose" fill="#0d0f12">
+<circle cx="240" cy="150" r="13"/>
+<rect x="229" y="163" width="22" height="36" rx="6"/>
+<rect x="205" y="145" width="9" height="32" rx="4" transform="rotate(-45 209 150)"/>
+<rect x="256" y="145" width="9" height="32" rx="4" transform="rotate(45 261 150)"/>
+<rect x="230" y="196" width="8" height="28" rx="3"/><rect x="243" y="196" width="8" height="28" rx="3"/>
+</g>
+<circle class="confetti" cx="120" cy="20" r="4" fill="#e8963c"/><circle class="confetti" cx="200" cy="10" r="4" fill="#5fc9b8" style="animation-delay:.4s"/>
+<circle class="confetti" cx="300" cy="30" r="4" fill="#e0b04a" style="animation-delay:.8s"/><circle class="confetti" cx="360" cy="5" r="4" fill="#b8860b" style="animation-delay:1.1s"/>
+<circle class="confetti" cx="410" cy="25" r="4" fill="#5fc9b8" style="animation-delay:.2s"/><circle class="confetti" cx="160" cy="0" r="4" fill="#e8963c" style="animation-delay:1.4s"/>
+<text x="240" y="52" text-anchor="middle" style="font-size:23px;fill:#f2c14e;font-weight:800;letter-spacing:1px">KAMAAL HO GAYA!</text>
+</g>
+
+<g class="g g-recession">
+<rect width="480" height="240" fill="#171a1e"/>
+<circle cx="240" cy="55" r="55" fill="#3a4048" opacity=".3"/>
+<line class="rain" x1="150" y1="0" x2="140" y2="40" stroke="#4a5057" stroke-width="2"/>
+<line class="rain" x1="330" y1="0" x2="320" y2="40" stroke="#4a5057" stroke-width="2" style="animation-delay:.3s"/>
+<line class="rain" x1="240" y1="0" x2="230" y2="40" stroke="#4a5057" stroke-width="2" style="animation-delay:.6s"/>
+<g class="sad-pose" fill="#0d0f12">
+<circle cx="240" cy="150" r="13"/>
+<rect x="230" y="163" width="22" height="34" rx="6" transform="rotate(5 241 163)"/>
+<rect x="209" y="138" width="9" height="26" rx="4" transform="rotate(65 213 140)"/>
+<rect x="256" y="163" width="9" height="30" rx="4" transform="rotate(-15 260 163)"/>
+<rect x="231" y="195" width="8" height="26" rx="3"/><rect x="244" y="195" width="8" height="26" rx="3"/>
+</g>
+<text x="240" y="222" text-anchor="middle" style="font-size:17px;fill:#98a4af;font-weight:700">ARRE YAAR...</text>
+</g>
+
+<g class="g g-stag">
+<rect width="480" height="240" fill="#14161c"/>
+<circle cx="240" cy="65" r="48" fill="#2b3038" opacity=".3"/>
+<polygon class="bolt" points="252,0 236,88 258,88 226,180 286,78 260,78" fill="#f2e15a"/>
+<g class="sad-pose" fill="#0d0f12">
+<circle cx="240" cy="168" r="12"/>
+<rect x="229" y="180" width="22" height="22" rx="6" transform="rotate(22 240 180)"/>
+<rect x="230" y="199" width="9" height="22" rx="4" transform="rotate(60 234 199)"/>
+<rect x="248" y="199" width="9" height="22" rx="4" transform="rotate(-50 252 199)"/>
+</g>
+<text x="240" y="228" text-anchor="middle" style="font-size:15px;fill:#e6eaee;font-weight:700">BIJLI GIR GAYI!</text>
+</g>
+
+<g class="g g-collapse">
+<rect width="480" height="240" fill="#000"/>
+<circle cx="240" cy="120" r="95" fill="none" stroke="#3a4048" stroke-width="2" opacity=".5"/>
+<g fill="#0d0f12">
+<ellipse cx="240" cy="205" rx="34" ry="7"/>
+<circle cx="204" cy="199" r="11"/>
+<rect x="208" y="195" width="66" height="15" rx="7"/>
+</g>
+<circle class="smoke2" cx="262" cy="188" r="7" fill="#3a4048"/><circle class="smoke2" cx="282" cy="183" r="6" fill="#2b3038" style="animation-delay:.4s"/>
+<text x="240" y="112" text-anchor="middle" style="font-size:28px;fill:#e6eaee;font-weight:800;letter-spacing:3px;font-family:Georgia,serif">THE END</text>
+<text x="240" y="136" text-anchor="middle" style="font-size:12px;fill:#8a92a0;letter-spacing:1px">GDP KA POORA KHATAM</text>
+</g>
+
+</svg>
+<div class="cap"><b id="capT">Market at baseline</b><div id="capS">Move a shifter or pick a scenario to see the economy react.</div></div>
+</section>
+
+<div class="grid">
+<div class="col l">
+<div class="card o1">
+<h2>Scenarios</h2>
+<div class="pre" id="pre"></div>
+<p style="font-size:.82rem;color:var(--mut);margin:0">Each shifter is a rough % change from normal. Real economists use much messier numbers — this is the cartoon version.</p>
+</div>
+<div class="card dc o2"><h2>💸 Demand-side shifters (move AD)</h2><div id="dSl"></div></div>
+<div class="card sc o3"><h2>🏭 Supply-side shifters (move SRAS)</h2><div id="sSl"></div></div>
+</div>
+<div class="col r">
+<div class="card o4">
+<h2>Market readout</h2>
+<div class="stats">
+<div class="stat"><span>Price level</span><div id="pr"></div><em id="prc"></em></div>
+<div class="stat"><span>Real GDP</span><div id="qt"></div><em id="qtc"></em></div>
+<div class="stat"><span>Output gap</span><div id="gp"></div><em>vs. potential</em></div>
+</div>
+<div class="gauge"><i id="gaugeFill"></i><b></b></div>
+<div class="gaugelbl"><span>Below potential</span><span>At potential</span><span>Above potential</span></div>
+<p id="why"></p>
+</div>
+<div class="card o5">
+<h2>AD / SRAS / LRAS</h2>
+<div class="chartbox"><svg id="ch" viewBox="0 0 460 340" width="100%" role="img" aria-label="AD AS chart"></svg></div>
+<p style="font-size:.82rem;color:var(--mut);margin:8px 0 0">Dashed lines are the starting position. Solid lines and the dot are where you've pushed the economy to.</p>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+var b=0.15,d=0.15,A0=145,C0=55,Yp=300,PMAX=200,QMAX=600;
+var demand=[
+ {k:'ms',n:'Money supply / cheap credit',h:'Loose money: borrowing is cheap, spending climbs',s:1},
+ {k:'gov',n:'Government spending',h:'New contracts and projects push demand up',s:1},
+ {k:'tax',n:'Income tax rate',h:'Higher taxes eat take-home pay, spending drops',s:-1},
+ {k:'conf',n:'Consumer confidence',h:'People feel flush (or spooked) about spending',s:1},
+ {k:'nx',n:'Net exports / exchange rate',h:'A weaker rupee makes exports cheap abroad',s:1}
+];
+var supply=[
+ {k:'oil',n:'Oil & import costs',h:'Pricier inputs squeeze margins, firms pull back',s:1},
+ {k:'wage',n:'Wage growth',h:'Bigger paychecks — and bigger costs for firms',s:1},
+ {k:'prod',n:'Productivity / technology',h:'Same workers, more output — supply loosens',s:-1},
+ {k:'reg',n:'Regulation & red tape',h:'More paperwork, slower production',s:1},
+ {k:'einf',n:'Expected inflation',h:'Workers demand raises before prices even move',s:1}
+];
+var val={};demand.concat(supply).forEach(function(x){val[x.k]=0});
+var presets=[['Central Bank Goes Brrr',{ms:35,conf:10}],['Oil Shock',{oil:35}],['Confidence Crash',{conf:-35}],
+ ['Productivity Boom',{prod:35}],['Austerity Budget',{gov:-30,tax:20}],['Reset',null]];
+
+function el(i){return document.getElementById(i)}
+function sign(n){return(n>0?'+':'')+n+'%'}
+function calc(v){var ds=0,ss=0;demand.forEach(function(x){ds+=x.s*v[x.k]});supply.forEach(function(x){ss+=x.s*v[x.k]});
+ var A=A0*(1+ds/100),C=C0+ss*0.7,Y=(A-C)/(b+d),P=A-b*Y;return{A:A,C:C,Y:Y,P:P}}
+function build(box,arr){var h='';arr.forEach(function(x){h+='<div class="sl"><label for="s_'+x.k+'"><span>'+x.n+'</span><b id="v_'+x.k+'">0%</b></label><input type="range" id="s_'+x.k+'" min="-40" max="40" step="1" value="0" data-k="'+x.k+'"><small>'+x.h+'</small></div>'});el(box).innerHTML=h}
+var base=calc(val);
+
+var jokes={
+ flat:['Sab set hai. Koi drama nahi — abhi.'],
+ boom:['Kamaal ho gaya! GDP ne full filmy entry li hai.','Josh itna high hai, log naach rahe hain streets mein.','Ekdum blockbuster opening — sab khush, sab paisa!','Paisa follow karta hai, brother!','Yeh public hai, yeh sab jaanti hai.'],
+ recession:['Arre yaar... ye kaise ho gaya?','Dil toot gaya, aur thoda GDP bhi.','Thoda dukh hai, thoda unemployment bhi.','Sharam kar lo thoda.'],
+ stag:['Bijli giri prices pe bhi — stagflation, sabse bada plot twist.','Thunder crashed, aur economy bhi. Ekdum filmy drama.','Interval mein hi sab kharab ho gaya.','Yeh andar ki baat hai.'],
+ collapse:['THE END. GDP ka poora khatam ho gaya.','Picture khatam, paisa khatam.','Credits roll — economy ne retirement le li.','Mujhe kya karna, brother.']
+};
+var lastState=null;
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
+
+function chart(bs,cur){
+ var W=460,H=340,L=46,R=12,T=14,B=36,pw=W-L-R,ph=H-T-B;
+ function X(q){return L+q/QMAX*pw}function Y(p){return T+ph-p/PMAX*ph}
+ function adLine(A,col,dash){var pts=[X(0)+','+Y(A),X(QMAX)+','+Y(A-b*QMAX)];return '<polyline points="'+pts.join(' ')+'" fill="none" stroke="'+col+'" stroke-width="'+(dash?2:3)+'" '+(dash?'stroke-dasharray="6 5" opacity=".5"':'')+' clip-path="url(#cp)"/>'}
+ function srasLine(C,col,dash){var pts=[X(0)+','+Y(C),X(QMAX)+','+Y(C+d*QMAX)];return '<polyline points="'+pts.join(' ')+'" fill="none" stroke="'+col+'" stroke-width="'+(dash?2:3)+'" '+(dash?'stroke-dasharray="6 5" opacity=".5"':'')+' clip-path="url(#cp)"/>'}
+ var g='<defs><clipPath id="cp"><rect x="'+L+'" y="'+T+'" width="'+pw+'" height="'+ph+'"/></clipPath></defs>';
+ for(var p=0;p<=PMAX;p+=40)g+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(p)+'" y2="'+Y(p)+'" stroke="var(--line)"/><text x="'+(L-6)+'" y="'+(Y(p)+4)+'" text-anchor="end">'+p+'</text>';
+ for(var q=0;q<=QMAX;q+=100)g+='<line y1="'+T+'" y2="'+(T+ph)+'" x1="'+X(q)+'" x2="'+X(q)+'" stroke="var(--line)"/><text x="'+X(q)+'" y="'+(H-14)+'" text-anchor="middle">'+q+'</text>';
+ g+='<text x="'+(L+pw/2)+'" y="'+(H-2)+'" text-anchor="middle">Real GDP (Y)</text><text x="10" y="'+(T+ph/2)+'" transform="rotate(-90 10 '+(T+ph/2)+')" text-anchor="middle">Price level (P)</text>';
+ g+='<line x1="'+X(Yp)+'" x2="'+X(Yp)+'" y1="'+T+'" y2="'+(T+ph)+'" stroke="var(--acc)" stroke-dasharray="3 4" opacity=".8"/>';
+ g+=adLine(bs.A,'var(--dem)',1)+srasLine(bs.C,'var(--sup)',1)+adLine(cur.A,'var(--dem)',0)+srasLine(cur.C,'var(--sup)',0);
+ g+='<text x="'+(X(QMAX)-10)+'" y="'+(Y(cur.A-b*QMAX)-6)+'" text-anchor="end" style="fill:var(--dem);font-weight:700">AD</text>';
+ g+='<text x="'+(X(QMAX)-10)+'" y="'+(Y(Math.min(PMAX,cur.C+d*QMAX))-6)+'" text-anchor="end" style="fill:var(--sup);font-weight:700">SRAS</text>';
+ g+='<text x="'+(X(Yp)+4)+'" y="'+(T+12)+'" style="fill:var(--acc);font-weight:700">LRAS</text>';
+ var by=Math.max(0,Math.min(bs.Y,QMAX)),bp=Math.max(0,Math.min(bs.P,PMAX));
+ g+='<circle cx="'+X(by)+'" cy="'+Y(bp)+'" r="5" fill="none" stroke="var(--mut)" stroke-dasharray="2 2"/>';
+ var cy2=Math.max(0,Math.min(cur.Y,QMAX)),cp2=Math.max(0,Math.min(cur.P,PMAX));
+ g+='<circle cx="'+X(cy2)+'" cy="'+Y(cp2)+'" r="6" fill="var(--ink)"/>';
+ el('ch').innerHTML=g;
+}
+
+function update(){
+ demand.concat(supply).forEach(function(x){el('v_'+x.k).textContent=sign(val[x.k])});
+ var c=calc(val),dP=(c.P-base.P)/base.P*100,dY=(c.Y-base.Y)/base.Y*100;
+ el('pr').textContent=c.P.toFixed(0);el('qt').textContent=Math.max(0,c.Y).toFixed(0);
+ var gap=c.Y-Yp;el('gp').textContent=(gap>=0?'+':'')+gap.toFixed(0);
+ var pc=el('prc'),qc=el('qtc');
+ pc.textContent=(dP>=0?'+':'')+dP.toFixed(1)+'% vs baseline';pc.className=dP>0.5?'up':dP<-0.5?'down':'';
+ qc.textContent=(dY>=0?'+':'')+dY.toFixed(1)+'% vs baseline';qc.className=dY>0.5?'down':dY<-0.5?'up':'';
+ var pct=Math.max(0,Math.min(100,(c.Y/Yp)*50));
+ el('gaugeFill').style.width=pct+'%';
+ el('gaugeFill').style.background=c.Y>=Yp?'var(--sup)':'var(--up)';
+
+ var state;
+ if(c.Y<=0)state='collapse';
+ else if(dY<=-4&&dP>0.5)state='stag';
+ else if(dY<=-4)state='recession';
+ else if(dY>=4)state='boom';
+ else state='flat';
+
+ var t;
+ if(Math.abs(dY)<1&&Math.abs(dP)<1)t='Nothing much moved. Nudge a shifter to see the curves react.';
+ else{
+  var dsSign=0,ssSign=0;demand.forEach(function(x){dsSign+=x.s*val[x.k]});supply.forEach(function(x){ssSign+=x.s*val[x.k]});
+  t='AD '+(dsSign>1?'shifts right':dsSign<-1?'shifts left':'holds steady')+', SRAS '+(ssSign>1?'shifts left (costs up)':ssSign<-1?'shifts right (costs down)':'holds steady')+'. ';
+  t+='Price level '+(dP>0.5?'rises':dP<-0.5?'falls':'barely moves')+', real GDP '+(dY>0.5?'rises':dY<-0.5?'falls':'barely moves')+'.';
+ }
+ if(c.Y<=0)t+=' The lines have crossed off the chart — nothing trades at any price.';
+ el('why').textContent=t;
+
+ el('scene').className='hero st-'+state;
+ var line=(state!==lastState)?pick(jokes[state]):(el('capS').dataset.joke||pick(jokes[state]));
+ el('capS').dataset.joke=line;
+ lastState=state;
+ var titles={flat:'Market at baseline',boom:'BLOCKBUSTER!',recession:'Recession... arre yaar',stag:'Stagflation Drama!',collapse:'THE END'};
+ el('capT').textContent=titles[state];
+ el('capS').textContent=line;
+
+ chart(base,c);
+}
+
+build('dSl',demand);build('sSl',supply);
+var pb='';presets.forEach(function(p,i){pb+='<button data-i="'+i+'">'+p[0]+'</button>'});el('pre').innerHTML=pb;
+document.addEventListener('input',function(e){var k=e.target.getAttribute&&e.target.getAttribute('data-k');if(k){val[k]=+e.target.value;update()}});
+document.addEventListener('click',function(e){
+ var pbn=e.target.closest&&e.target.closest('[data-i]');
+ if(pbn){Object.keys(val).forEach(function(k){val[k]=0});var p=presets[+pbn.getAttribute('data-i')][1];
+  if(p)Object.keys(p).forEach(function(k){val[k]=p[k]});
+  Object.keys(val).forEach(function(k){el('s_'+k).value=val[k]});update()}
+});
+update();
+</script>
+</body>
+</html>
