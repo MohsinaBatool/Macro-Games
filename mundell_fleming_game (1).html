@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mangoland Cabinet - Mundell-Fleming Game</title>
+<style>
+:root{--ink:#17263B;--is:#C0392B;--lm:#1D6F8C;--peg:#A67A1E;--ok:#2E7D4F;--paper:#DDEFEF;--card:#FFFDF6;--line:#B9C5C7;--r:8px}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;background-color:var(--paper);background-image:linear-gradient(#c6e0e0 1px,transparent 1px),linear-gradient(90deg,#c6e0e0 1px,transparent 1px);background-size:24px 24px}
+.app{max-width:1100px;margin:0 auto;padding:20px 16px 40px}
+h1{font:700 32px/1.1 Georgia,"Iowan Old Style",Palatino,serif;margin:0 0 4px}
+header p{margin:0 0 16px;max-width:64ch}
+main{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start}
+.card{background:var(--card);border:2px solid var(--ink);border-radius:var(--r);padding:14px;box-shadow:4px 4px 0 var(--ink)}
+.reg{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+button{font:inherit;color:var(--ink);background:#fff;border:2px solid var(--ink);border-radius:var(--r);padding:8px 12px;cursor:pointer;text-align:left;transition:transform .1s}
+button:hover{background:#fff1c9;transform:translateY(-2px)}
+button:focus-visible{outline:3px solid var(--lm);outline-offset:2px}
+button.on{background:var(--ink);color:#fff}
+button.go{background:#F2A900;font-weight:700;width:100%;text-align:center}
+button.go:hover{background:#ffbf2e}
+button.hint{background:#e8f5ee;font-size:13px;width:100%;text-align:center;margin-top:8px}
+svg{width:100%;height:auto;display:block}
+.shake{animation:sh .45s}
+@keyframes sh{20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+.key{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;margin-top:6px}
+.key i{display:inline-block;width:18px;height:0;border-top:3px solid;vertical-align:middle;margin-right:5px}
+.polly{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+.polly .bird{font-size:44px;line-height:1}
+.bubble{background:#fff;border:2px solid var(--ink);border-radius:14px 14px 14px 2px;padding:8px 12px;flex:1;font-weight:500}
+.mood{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+.mood .face{font-size:42px;line-height:1;animation:pop .5s}
+@keyframes pop{0%{transform:scale(.6)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
+.bar{flex:1}
+.bar small{display:flex;justify-content:space-between;color:#51606f;font-size:12px}
+.track{height:14px;border:2px solid var(--ink);border-radius:8px;background:#fff;overflow:hidden}
+.fill{height:100%;transition:width .6s,background .6s}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.stats div{border:1px solid var(--line);border-radius:var(--r);padding:6px 8px;background:#fff}
+.stats small{display:block;color:#51606f;font-size:12px}
+.stats strong{font:700 19px Georgia,serif}
+.news{border-left:6px solid var(--is);padding:4px 10px;margin:0 0 12px;background:#fff}
+.news h2{font:700 17px Georgia,serif;margin:0}
+.news p{margin:2px 0 0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid button span{display:block;font-size:12px;color:#51606f}
+.row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.row button{text-align:center}
+.q{margin:0 0 8px;font-weight:600}
+.res{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:10px;margin-bottom:10px}
+.good{color:var(--ok);font-weight:700}.bad{color:var(--is);font-weight:700}
+.conf{position:fixed;top:-30px;font-size:26px;pointer-events:none;animation:fall 1.9s ease-in forwards;z-index:9}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg);opacity:.8}}
+details{margin-top:16px}summary{cursor:pointer;font-weight:600}
+table{border-collapse:collapse;width:100%;margin-top:8px;font-size:14px}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;background:#fff}
+@media(max-width:860px){main{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+@media(prefers-reduced-motion:reduce){.shake,.conf,.face{animation:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+<h1>🥭 Mangoland Cabinet</h1>
+<p>You are the new Finance Minister of Mangoland, a tiny island that trades mangoes with the whole world. Wild shocks hit the IS* and LM* curves. Pull the right policy lever to keep income Y at 100, keep the islanders happy, and don't get voted out. Then flip the exchange rate regime and see which levers stop working!</p>
+</header>
+<main>
+<section class="card" aria-label="Mundell-Fleming graph">
+<div class="reg"><b>Regime:</b><button id="bf">🌊 Floating</button><button id="bx">⚓ Fixed peg</button></div>
+<div id="gw"><svg id="g" viewBox="0 0 520 420" role="img" aria-label="IS-star and LM-star curves in income and exchange rate space"></svg></div>
+<div class="key">
+<span><i style="border-color:var(--is)"></i>IS*</span>
+<span><i style="border-color:var(--lm)"></i>LM*</span>
+<span><i style="border-color:var(--peg);border-top-style:dashed"></i>Peg (fixed only)</span>
+<span><i style="border-color:#8a98a5;border-top-style:dashed"></i>Faded = before the last change</span>
+</div>
+</section>
+<section class="card" aria-live="polite">
+<div class="polly"><div class="bird">🦜</div><div class="bubble" id="say"></div></div>
+<div class="mood" id="mood"></div>
+<div class="stats" id="stats"></div>
+<div id="news"></div>
+<div id="act"></div>
+</section>
+</main>
+<details class="card">
+<summary>Cheat sheet: what each lever does</summary>
+<table>
+<tr><th>Lever</th><th>Floating rate</th><th>Fixed rate</th></tr>
+<tr><td>Fiscal (G up, T down)</td><td>IS* shifts, currency appreciates, Y unchanged</td><td>IS* shifts, M follows, Y changes fully</td></tr>
+<tr><td>Monetary (M up)</td><td>LM* shifts, currency depreciates, Y changes</td><td>Central bank reverses it, nothing changes</td></tr>
+<tr><td>Import quota</td><td>IS* shifts right, currency appreciates, Y unchanged</td><td>IS* shifts right, M expands, Y rises</td></tr>
+</table>
+</details>
+</div>
+<script>
+/* IS*: Y = K + 1.5G - T - 0.5(e-100); LM*: Y = M + 6(r*-5) + Ls.
+   e = foreign currency per unit of home currency (up = appreciation). */
+const TOTAL=6;
+const SHOCKS=[
+{t:'🌴 Mango festival cancelled!',d:'Households panic and stop spending.',f:s=>{s.K-=12},sh:'IS* shifts left.'},
+{t:'🚢 Tourists flood in from abroad!',d:'Foreign demand for Mangoland goods soars.',f:s=>{s.K+=10},sh:'IS* shifts right.'},
+{t:'🏦 World interest rate jumps 2 points!',d:'Investment falls and money demand falls.',f:s=>{s.r+=2;s.K-=2},sh:'IS* shifts left and LM* shifts right.',lm:1},
+{t:'🏦 World interest rate drops 2 points!',d:'Investment rises and money demand rises.',f:s=>{s.r-=2;s.K+=2},sh:'IS* shifts right and LM* shifts left.',lm:1},
+{t:'💰 Pirates spread a rumor: banks are unsafe!',d:'Everyone hoards cash.',f:s=>{s.Ls-=10},sh:'LM* shifts left.',lm:1},
+{t:'🏭 Startup boom: mango-juice robots!',d:'Firms expand like crazy.',f:s=>{s.K+=12},sh:'IS* shifts right.'}
+];
+const POLS=[
+{l:'💸 Raise spending',s:'G +10',f:s=>{s.G+=10},k:'fis',x:1},
+{l:'✂️ Cut spending',s:'G -10',f:s=>{s.G-=10},k:'fis',x:-1},
+{l:'🎁 Cut taxes',s:'T -10',f:s=>{s.T-=10},k:'fis',x:1},
+{l:'🧾 Raise taxes',s:'T +10',f:s=>{s.T+=10},k:'fis',x:-1},
+{l:'🖨️ Print money',s:'M +10',f:s=>{s.M+=10},k:'mon',x:1},
+{l:'🔒 Tighten money',s:'M -10',f:s=>{s.M-=10},k:'mon',x:-1},
+{l:'🚧 Import quota',s:'net exports +10',f:s=>{s.K+=10},k:'trd',x:1},
+{l:'🧘 Do nothing',s:'',f:()=>{},k:'non',x:0}
+];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+function C(s){
+  const isA=s.K+1.5*s.G-s.T,lmY=s.M+6*(s.r-5)+s.Ls;
+  if(s.reg==='float'){const Y=lmY;return{isA,Y,e:100-2*(Y-isA),M:s.M}}
+  return{isA,Y:isA,e:100,M:isA-6*(s.r-5)-s.Ls};
+}
+let S,V,ghost=null;
+function newGame(reg){S={reg,G:20,T:20,M:100,r:5,K:90,Ls:0,rd:0,sc:0,ap:70,st:0,ph:'ready',q:shuffle(SHOCKS).slice(0,TOTAL),cur:null,pend:null,res:null,say:'',hint:0,fired:0};
+  S.say='Squawk! Welcome, Minister. Keep income at 100 and the islanders will love you.';V=C(S);ghost=null;tween();}
+function tween(){
+  const a=Object.assign({},V),b=C(S),t0=performance.now();
+  function f(t){const k=Math.min(1,(t-t0)/600),z=k*k*(3-2*k);
+    V={isA:a.isA+(b.isA-a.isA)*z,Y:a.Y+(b.Y-a.Y)*z,e:a.e+(b.e-a.e)*z,M:b.M};draw();if(k<1)requestAnimationFrame(f)}
+  requestAnimationFrame(f);render();
+}
+const X=y=>52+(y-60)/80*454,E=e=>14+(140-e)/80*362,isX=(v,e)=>v.isA-0.5*(e-100);
+function lines(v,fade){
+  const o=fade?' stroke-dasharray="5 5" opacity=".4"':'';
+  return `<line x1="${X(isX(v,140))}" y1="${E(140)}" x2="${X(isX(v,60))}" y2="${E(60)}" stroke="var(--is)" stroke-width="3.5"${o}/><line x1="${X(v.Y)}" y1="${E(140)}" x2="${X(v.Y)}" y2="${E(60)}" stroke="var(--lm)" stroke-width="3.5"${o}/>`;
+}
+function draw(){
+  let h='<defs><clipPath id="c"><rect x="52" y="14" width="454" height="362"/></clipPath></defs>';
+  for(let v=60;v<=140;v+=20)h+=`<line x1="${X(v)}" y1="14" x2="${X(v)}" y2="376" stroke="#cfd8d9"/><line x1="52" y1="${E(v)}" x2="506" y2="${E(v)}" stroke="#cfd8d9"/><text x="${X(v)}" y="392" font-size="11" text-anchor="middle" fill="#51606f">${v}</text><text x="46" y="${E(v)+4}" font-size="11" text-anchor="end" fill="#51606f">${v}</text>`;
+  h+=`<rect x="${X(96)}" y="14" width="${X(104)-X(96)}" height="362" fill="var(--ok)" opacity=".16"/><text x="${X(100)}" y="26" font-size="11" text-anchor="middle" fill="var(--ok)" font-weight="700">🎯 target Y*</text><g clip-path="url(#c)">`;
+  if(ghost)h+=lines(ghost,true);
+  if(S.reg==='fixed')h+=`<line x1="52" y1="${E(100)}" x2="506" y2="${E(100)}" stroke="var(--peg)" stroke-width="2.5" stroke-dasharray="8 5"/>`;
+  h+=lines(V,false)+'</g>';
+  const ex=X(V.Y),ey=E(V.e),flip=ex>380;
+  h+=`<text x="${ex}" y="${ey+9}" font-size="28" text-anchor="middle">🥭</text><text x="${ex+(flip?-18:18)}" y="${ey-14}" font-size="12" font-weight="700" text-anchor="${flip?'end':'start'}">Y ${V.Y.toFixed(1)}, e ${V.e.toFixed(0)}</text>`;
+  h+=`<text x="${Math.min(500,Math.max(70,X(isX(V,60))-4))}" y="${E(60)-8}" font-size="14" font-weight="700" text-anchor="end" fill="var(--is)">IS*</text><text x="${X(V.Y)+6}" y="${E(132)}" font-size="14" font-weight="700" fill="var(--lm)">LM*</text>`;
+  if(S.reg==='fixed')h+=`<text x="500" y="${E(100)-6}" font-size="12" text-anchor="end" fill="var(--peg)" font-weight="700">⚓ peg e = 100</text>`;
+  h+=`<text x="279" y="414" font-size="13" text-anchor="middle" font-weight="600">Income, Y</text><text transform="translate(13 195) rotate(-90)" font-size="13" text-anchor="middle" font-weight="600">Exchange rate, e</text>`;
+  document.getElementById('g').innerHTML=h;
+}
+function why(p,reg){
+  const up=p.x>0,d=up?'right':'left';
+  if(p.k==='non')return 'Nothing moved. The shock stays in the economy.';
+  if(reg==='float'){
+    if(p.k==='fis')return `IS* shifts ${d}. The currency ${up?'appreciates':'depreciates'}, so net exports ${up?'fall':'rise'} and cancel the fiscal push exactly. Income stays on the vertical LM*, and only e moves.`;
+    if(p.k==='mon')return `LM* shifts ${d}. The currency ${up?'depreciates':'appreciates'}, net exports ${up?'rise':'fall'}, and income moves along IS*. Monetary policy is powerful under floating rates.`;
+    return 'IS* shifts right, but the currency appreciates until net exports fall back. Income is unchanged and only e moves.';
+  }
+  if(p.k==='fis')return `IS* shifts ${d}. To hold the peg the central bank ${up?'sells':'buys'} domestic currency, so M and LM* shift ${d} too. Income changes by the full amount: fiscal policy is powerful under a peg.`;
+  if(p.k==='mon')return 'The central bank must undo the change to defend the peg, so M returns to its old level and LM* ends where it started. Monetary policy is powerless under a peg.';
+  return 'IS* shifts right and the central bank expands M to hold the peg. Income rises.';
+}
+const face=g=>g<=4?'😎':g<=8?'🙂':g<=14?'😟':'😡';
+function confetti(){
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+  const em=['🥭','🎉','✨','🌴','🦜'];
+  for(let i=0;i<26;i++){const s=document.createElement('span');s.className='conf';s.textContent=em[i%5];s.style.left=Math.random()*98+'vw';s.style.animationDelay=Math.random()*.5+'s';document.body.appendChild(s);setTimeout(()=>s.remove(),2600)}
+}
+function bestTip(){
+  let best=null,bg=1e9;
+  POLS.forEach(p=>{const t=Object.assign({},S);p.f(t);const g=Math.abs(C(t).Y-100);if(g<bg-0.01){bg=g;best=p}});
+  const nm={fis:'fiscal (spending or taxes)',mon:'monetary (money supply)',trd:'trade (a quota)',non:'nothing at all'}[best.k];
+  return best.k==='non'?'Squawk! Honestly? Sometimes the best lever is no lever.':`Squawk! In a ${S.reg==='float'?'floating':'fixed'} economy, I would reach for a ${best.x>0?'boosting':'restraining'} ${nm} move.`;
+}
+function render(){
+  const c=C(S),gap=c.Y-100,ag=Math.abs(gap);
+  document.getElementById('bf').className=S.reg==='float'?'on':'';
+  document.getElementById('bx').className=S.reg==='fixed'?'on':'';
+  document.getElementById('say').textContent=S.say;
+  const col=S.ap>60?'var(--ok)':S.ap>30?'#F2A900':'var(--is)';
+  document.getElementById('mood').innerHTML=`<div class="face" title="Islander mood">${face(ag)}</div><div class="bar"><small><span>Approval rating</span><span>${S.ap}%</span></small><div class="track"><div class="fill" style="width:${S.ap}%;background:${col}"></div></div><small><span>${S.st>1?'🔥 '+S.st+'-round streak on target':'Hit the target to start a streak'}</span></small></div>`;
+  const sz=Math.max(16,Math.min(44,16+(c.e-60)/80*28));
+  document.getElementById('stats').innerHTML=
+    `<div><small>Income Y</small><strong style="color:${ag<=4?'var(--ok)':'var(--is)'}">${c.Y.toFixed(1)}</strong></div>`+
+    `<div><small>Currency e</small><strong><span style="font-size:${sz}px">🥭</span> ${c.e.toFixed(0)}</strong></div>`+
+    `<div><small>Money supply M</small><strong>${c.M.toFixed(0)}</strong></div>`+
+    `<div><small>Round · score</small><strong>${Math.min(S.rd,TOTAL)}/${TOTAL} · ${S.sc}</strong></div>`;
+  const n=document.getElementById('news'),a=document.getElementById('act');
+  n.innerHTML='';
+  if(S.cur&&S.ph!=='end'){
+    const note=S.cur.lm&&S.reg==='fixed'?' Under the peg, the central bank adjusts M to hold e, so LM* always passes through the IS* point.':'';
+    n.innerHTML=`<div class="news"><h2>BREAKING: ${S.cur.t}</h2><p>${S.cur.d} ${S.cur.sh}${note}</p></div>`;
+  }
+  const gtxt=`Income is ${ag.toFixed(1)} ${gap>=0?'above':'below'} target.`;
+  if(S.ph==='ready'){
+    a.innerHTML=`<button class="go" onclick="nextShock()">${S.rd===0?'🚀 Start round 1':'🌪️ Next shock: round '+(S.rd+1)+' of '+TOTAL}</button>`;
+  }else if(S.ph==='choose'){
+    a.innerHTML=`<p class="q">${gtxt} Pull one lever.</p><div class="grid">`+POLS.map((p,i)=>`<button onclick="pick(${i})">${p.l}<span>${p.s}</span></button>`).join('')+`</div>${S.hint?'':'<button class="hint" onclick="hint()">🦜 Ask Polly for a hint (-10 points)</button>'}`;
+  }else if(S.ph==='predict'){
+    a.innerHTML=`<p class="q">You pulled: ${S.pend.l}. Predict what happens to income Y.</p><div class="row"><button onclick="predict('up')">📈 Rises</button><button onclick="predict('same')">➖ No change</button><button onclick="predict('down')">📉 Falls</button></div>`;
+  }else if(S.ph==='result'){
+    const r=S.res;
+    a.innerHTML=`<div class="res"><p class="${r.ok?'good':'bad'}">${r.ok?'🎯 Correct prediction (+15)!':'❌ Not quite. Y actually '+({up:'rose',same:'did not change',down:'fell'})[r.act]+'.'}</p><p>Y: ${r.y0.toFixed(1)} → ${r.y1.toFixed(1)}. e: ${r.e0.toFixed(0)} → ${r.e1.toFixed(0)}. Round score: ${r.pts}${r.sb?' (includes streak bonus '+r.sb+')':''}. Approval ${r.da>=0?'+':''}${r.da}.</p><p>${r.why}</p></div><button class="go" onclick="${S.fired||S.rd>=TOTAL?'finish()':'nextShock()'}">${S.fired||S.rd>=TOTAL?'🏁 See final result':'🌪️ Next shock: round '+(S.rd+1)+' of '+TOTAL}</button>`;
+  }else{
+    const g=S.fired?'Ex-Minister (voted out!)':S.sc>=650?'Mango Mastermind 🥭👑':S.sc>=480?'Finance Minister':S.sc>=300?'Junior Minister':'Coconut Intern 🥥';
+    const o=S.reg==='float'?'fixed':'floating';
+    a.innerHTML=`<div class="res"><p class="q">Final score: ${S.sc}. Rank: ${g}</p><p>${S.fired?'The islanders ran out of patience. ':''}Now try the <b>${o}</b> regime. Which levers worked this time, and which stopped working?</p></div><button class="go" onclick="newGame('${S.reg==='float'?'fixed':'float'}')">Play under ${o} ${o==='fixed'?'⚓':'🌊'}</button><p></p><button class="go" onclick="newGame('${S.reg}')">🔁 Replay same regime</button>`;
+  }
+}
+function nextShock(){
+  const c=C(S);ghost={isA:c.isA,Y:c.Y};
+  S.cur=S.q[S.rd];S.rd++;S.cur.f(S);S.ph='choose';S.hint=0;
+  S.say=S.rd===1?'Rawk! First shock already. Which lever will you pull?':'Another shock! Look at which curve moved, then choose wisely.';
+  tween();
+}
+function hint(){S.hint=1;S.sc=Math.max(0,S.sc-10);S.say=bestTip();render();}
+function pick(i){S.pend=POLS[i];S.ph='predict';S.say='Think about the exchange rate and the central bank before you answer!';render();}
+function predict(g){
+  const b=C(S),p=S.pend;ghost={isA:b.isA,Y:b.Y};
+  p.f(S);const a=C(S),dY=a.Y-b.Y,gp=Math.abs(a.Y-100);
+  const act=dY>.5?'up':dY<-.5?'down':'same',ok=g===act;
+  S.st=gp<=4?S.st+1:0;
+  const sb=gp<=4&&S.st>1?10*(S.st-1):0;
+  const pts=Math.max(0,Math.round(100-6*gp))+(ok?15:0)+sb;
+  const da=gp<=4?8:-Math.round(gp*1.5);
+  S.sc+=pts;S.ap=Math.max(0,Math.min(100,S.ap+da));
+  if(S.ap<=0)S.fired=1;
+  S.res={ok,act,pts,sb,da,y0:b.Y,y1:a.Y,e0:b.e,e1:a.e,why:why(p,S.reg)};
+  S.ph='result';
+  S.say=gp<=4?'Squawk! The islanders are cheering! 🎉':ok?'Good prediction, but income is still off target.':'Rawk! Check where the curves went and why.';
+  tween();
+  if(gp<=4)confetti();
+  else if(gp>8){const w=document.getElementById('gw');w.classList.remove('shake');void w.offsetWidth;w.classList.add('shake')}
+}
+function finish(){S.ph='end';S.say=S.fired?'Rawk... packing your bags, Minister.':'What a term in office! Try the other regime now.';render();}
+document.getElementById('bf').onclick=()=>{if(S.reg==='float'||confirm('Switch regime and restart the game?'))newGame('float')};
+document.getElementById('bx').onclick=()=>{if(S.reg==='fixed'||confirm('Switch regime and restart the game?'))newGame('fixed')};
+newGame('float');
+</script>
+</body>
+</html>
